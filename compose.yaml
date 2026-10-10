@@ -1,0 +1,39 @@
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: taskmanager-mysql
+    environment:
+      MYSQL_DATABASE: taskmanager
+      MYSQL_USER: taskapp
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - taskmanager-mysql-data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+     interval: 5s
+     timeout: 5s
+     retries: 10
+     start_period: 30s
+
+  app:
+    image: taskmanger_v01_11102026:latest
+    container_name: taskmanager-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/taskmanager
+      SPRING_DATASOURCE_USERNAME: taskapp
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  taskmanager-mysql-data:
+
